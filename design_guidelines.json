@@ -1,0 +1,149 @@
+{
+  "identity": {
+    "name": "E1",
+    "mission": "Create a study planner that feels like a 'digital sanctuary'—not a spreadsheet. Mix Neo-Brutalism (clarity, borders) with Soft Pop (warmth, approachability).",
+    "principles": [
+      "Fusion: Swiss Grid Structure + Gen Z Pastel Aesthetics.",
+      "Emotion: Reduce study anxiety through calming but focused visuals.",
+      "Content: Data is the art. The schedule itself should look beautiful.",
+      "Contrast: Soft backgrounds vs. Sharp black borders (2px)."
+    ]
+  },
+  "visual_language": {
+    "theme_name": "Zen-Brutalism",
+    "theme_description": "High-structure meets high-softness. A bento-box interface where every module is distinct, colorful, and tactile.",
+    "colors": {
+      "palette": {
+        "primary": "#18181b", 
+        "secondary": "#f4f4f5",
+        "background": "#FAFAF9", 
+        "surface": "#FFFFFF",
+        "border": "#18181b",
+        "accents": {
+          "focus_red": "#FECACA", 
+          "study_blue": "#BFDBFE",
+          "zen_green": "#BBF7D0",
+          "urgency_orange": "#FED7AA",
+          "royal_purple": "#E9D5FF"
+        }
+      },
+      "rules": [
+        "NEVER use pure black (#000000). Use #18181b or #09090b.",
+        "Backgrounds should be off-white (#FAFAF9) or warm grey, not sterile white.",
+        "Use the 'accents' for bento box backgrounds to differentiate modules (e.g., Timer = Red, Tasks = Blue)."
+      ]
+    },
+    "typography": {
+      "headings": {
+        "font_family": "Syne, sans-serif",
+        "weight": "700",
+        "style": "Tight tracking (-0.02em)",
+        "usage": "Use for all page titles and major section headers. It adds 'art' to the data."
+      },
+      "body": {
+        "font_family": "Outfit, sans-serif",
+        "weight": "400/500",
+        "usage": "Use for all UI text, tasks, and data. Highly legible at small sizes."
+      },
+      "monospace": {
+        "font_family": "JetBrains Mono, monospace",
+        "usage": "Use for timers, dates, and countdowns."
+      }
+    },
+    "spacing": {
+      "scale": "Generous. Use p-6 or p-8 for cards. Gap-6 for grids.",
+      "radius": {
+        "outer": "rounded-none", 
+        "inner": "rounded-none", 
+        "buttons": "rounded-full" 
+      }
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-white rounded-full px-8 py-3 font-bold hover:scale-105 transition-transform shadow-none border-2 border-transparent",
+      "secondary": "bg-white text-primary border-2 border-primary rounded-full px-8 py-3 font-bold hover:bg-primary hover:text-white transition-colors",
+      "ghost": "text-primary hover:bg-secondary rounded-lg px-4 py-2"
+    },
+    "cards": {
+      "style": "bg-white border-2 border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all",
+      "usage": "Every widget (Timer, Task List, Graph) lives in one of these 'Brutalist Cards'."
+    },
+    "inputs": {
+      "style": "bg-transparent border-b-2 border-primary px-0 py-2 focus:outline-none focus:border-b-4 transition-all placeholder:text-gray-400 font-medium"
+    },
+    "navigation": {
+      "style": "Floating pill-shaped dock at the bottom or sticky sidebar with bold icons."
+    }
+  },
+  "layout_strategies": {
+    "dashboard": {
+      "type": "Bento Grid",
+      "grid_cols": "grid-cols-1 md:grid-cols-4 lg:grid-cols-4",
+      "gap": "gap-6",
+      "modules": [
+        {"name": "Focus Timer", "span": "col-span-1 md:col-span-1", "color": "bg-red-100"},
+        {"name": "Today's Plan", "span": "col-span-1 md:col-span-2", "color": "bg-white"},
+        {"name": "Progress", "span": "col-span-1 md:col-span-1", "color": "bg-green-100"},
+        {"name": "Upcoming Deadlines", "span": "col-span-1 md:col-span-4", "color": "bg-blue-50"}
+      ]
+    },
+    "marketing_landing": {
+      "type": "Asymmetrical Scroll",
+      "hero": "Split screen: Big Typography on Left, 3D/Abstract Visual on Right."
+    }
+  },
+  "motion": {
+    "library": "framer-motion",
+    "types": [
+      {"name": "Hover Lift", "css": "hover:-translate-y-1 transition-transform"},
+      {"name": "Page Transition", "description": "Fade in + Slide up (y: 20 -> 0)"},
+      {"name": "Stagger", "description": "Stagger children in lists (Tasks, Deadlines) by 0.05s"}
+    ]
+  },
+  "assets": {
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 2px. Sharp and bold."
+    },
+    "images": [
+      {
+        "category": "hero_vibe",
+        "url": "https://images.unsplash.com/photo-1650661926447-9efb2610f64c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzV8MHwxfHNlYXJjaHwxfHxhZXN0aGV0aWMlMjBzdHVkeSUyMGRlc2slMjBzZXR1cCUyMHN0dWRlbnR8ZW58MHx8fHwxNzczNjQyMDcwfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Clean minimalist desk setup for Hero section or Auth pages."
+      },
+      {
+        "category": "abstract_focus",
+        "url": "https://images.unsplash.com/photo-1762652345565-e38e420b6f30?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODF8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwYWJzdHJhY3QlMjBzaGFwZXMlMjBzb2Z0JTIwY29sb3JzfGVufDB8fHx8MTc3MzY0MjA3MXww&ixlib=rb-4.1.0&q=85",
+        "description": "Soft pastel spheres. Use as background for 'Focus Timer' or 'Meditation' mode."
+      },
+      {
+        "category": "abstract_morning",
+        "url": "https://images.unsplash.com/photo-1763615445633-c05153e7d1a7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODF8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwYWJzdHJhY3QlMjBzaGFwZXMlMjBzb2Z0JTIwY29sb3JzfGVufDB8fHx8MTc3MzY0MjA3MXww&ixlib=rb-4.1.0&q=85",
+        "description": "Colorful abstract sun. Use for 'Morning Greeting' or 'Daily Goal' card."
+      },
+      {
+        "category": "community",
+        "url": "https://images.unsplash.com/photo-1758270705641-acf09b68a91f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDN8MHwxfHNlYXJjaHw0fHxzdHVkZW50JTIwcG9ydHJhaXQlMjBkaXZlcnNpdHl8ZW58MHx8fHwxNzczNjQyMDcyfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Group of diverse students. Use for 'Social' or 'Leaderboard' placeholder."
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "INSTALL FONTS: Add '@fontsource/syne' and '@fontsource/outfit' via npm/yarn immediately.",
+    "NO DEFAULT SHADCN: Heavily customize the Shadcn components. Remove the default 'radius-md' and 'border-border'. Use 'border-2 border-primary' and 'rounded-none' (or 'rounded-full' for buttons).",
+    "BENTO GRID IS KING: The main dashboard MUST use a CSS Grid layout. Do not stack everything vertically.",
+    "COLOR CODING: Use the specific pastel accents for specific features (Red=Timer, Blue=Tasks, Green=Stats). Do not mix them randomly.",
+    "ACCESSIBILITY: Ensure all text on the pastel backgrounds is dark (primary color #18181b), NOT white.",
+    "DATA-TESTID: Add data-testid to every button, input, and card."
+  ],
+  "universal_guidelines": [
+    "Do not use gradients for text.",
+    "Do not center align the app container.",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Use sonner for toasts.",
+    "Components MUST use named exports.",
+    "Pages MUST use default exports."
+  ]
+}
