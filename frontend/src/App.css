@@ -1,34 +1,63 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.planner-bg {
+  min-height: 100vh;
+  background-color: #fafaf9;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(191, 219, 254, 0.5), transparent 35%),
+    radial-gradient(circle at 80% 90%, rgba(187, 247, 208, 0.55), transparent 35%),
+    radial-gradient(circle at 60% 40%, rgba(233, 213, 255, 0.45), transparent 40%);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.page-shell {
+  padding: 2rem 1rem 7rem;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+@media (min-width: 768px) {
+  .page-shell {
+    padding: 2.5rem 2rem 8rem;
+  }
 }
 
-.App-link {
-    color: #61dafb;
+.brutal-card {
+  border: 2px solid #18181b;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 0 #18181b;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.brutal-card:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 0 #18181b;
+}
+
+.brutal-input {
+  border: 0;
+  border-bottom: 2px solid #18181b;
+  border-radius: 0;
+  padding: 0.5rem 0;
+  background: transparent;
+  transition: border-width 120ms ease;
+}
+
+.brutal-input:focus {
+  outline: none;
+  border-bottom-width: 4px;
+}
+
+.timer-font {
+  font-family: "JetBrains Mono", monospace;
+}
+
+.card-appear {
+  animation: cardFadeUp 350ms ease forwards;
+}
+
+@keyframes cardFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

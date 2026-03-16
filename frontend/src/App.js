@@ -1,53 +1,106 @@
-import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+import { Toaster } from "@/components/ui/sonner";
+import { TopNav } from "@/components/TopNav";
+import { useStudyData } from "@/hooks/useStudyData";
+import DashboardPage from "@/pages/DashboardPage";
+import PlannerPage from "@/pages/PlannerPage";
+import TasksPage from "@/pages/TasksPage";
+import FocusPage from "@/pages/FocusPage";
+import DeadlinesPage from "@/pages/DeadlinesPage";
+import AnalyticsPage from "@/pages/AnalyticsPage";
 
 function App() {
+  const {
+    loading,
+    generatingPlan,
+    submittingTask,
+    submittingDeadline,
+    tasks,
+    deadlines,
+    reminders,
+    plans,
+    focusSessions,
+    analytics,
+    addTask,
+    toggleTask,
+    deleteTask,
+    addDeadline,
+    toggleDeadline,
+    deleteDeadline,
+    logFocusSession,
+    generatePlan,
+  } = useStudyData();
+
   return (
-    <div className="App">
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
+        <div className="planner-bg" data-testid="study-planner-app-shell">
+          <TopNav />
+          <main className="page-shell">
+            {loading ? (
+              <div
+                className="brutal-card bg-white p-8 text-base md:text-lg"
+                data-testid="global-loading-card"
+              >
+                Loading your study space...
+              </div>
+            ) : (
+              <Routes>
+                <Route
+                  path="/dashboard"
+                  element={
+                    <DashboardPage
+                      tasks={tasks}
+                      deadlines={deadlines}
+                      analytics={analytics}
+                      plans={plans}
+                    />
+                  }
+                />
+                <Route
+                  path="/planner"
+                  element={<PlannerPage generatingPlan={generatingPlan} latestPlan={plans[0]} onGeneratePlan={generatePlan} />}
+                />
+                <Route
+                  path="/tasks"
+                  element={
+                    <TasksPage
+                      submittingTask={submittingTask}
+                      tasks={tasks}
+                      onAddTask={addTask}
+                      onToggleTask={toggleTask}
+                      onDeleteTask={deleteTask}
+                    />
+                  }
+                />
+                <Route
+                  path="/focus"
+                  element={<FocusPage focusSessions={focusSessions} onLogSession={logFocusSession} />}
+                />
+                <Route
+                  path="/deadlines"
+                  element={
+                    <DeadlinesPage
+                      submittingDeadline={submittingDeadline}
+                      deadlines={deadlines}
+                      reminders={reminders}
+                      onAddDeadline={addDeadline}
+                      onToggleDeadline={toggleDeadline}
+                      onDeleteDeadline={deleteDeadline}
+                    />
+                  }
+                />
+                <Route path="/analytics" element={<AnalyticsPage analytics={analytics} />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            )}
+          </main>
+          <Toaster data-testid="toast-root" position="top-right" richColors closeButton />
+        </div>
       </BrowserRouter>
-    </div>
+    </ThemeProvider>
   );
 }
 
