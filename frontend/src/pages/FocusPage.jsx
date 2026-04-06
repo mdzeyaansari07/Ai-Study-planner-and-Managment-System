@@ -16,9 +16,22 @@ const formatSessionDate = (value) => {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
 };
 
+const DEFAULT_FOCUS_MINUTES = 25;
+const FOCUS_MODE_OPTIONS = [25, 50];
+const CONTROL_ICON_SIZE = 16;
+const STAGGER_DELAY = 0.05;
+const HISTORY_ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: 8 },
+  visible: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: index * STAGGER_DELAY },
+  }),
+};
+
 export default function FocusPage({ focusSessions, onLogSession }) {
-  const [modeMinutes, setModeMinutes] = useState(25);
-  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
+  const [modeMinutes, setModeMinutes] = useState(DEFAULT_FOCUS_MINUTES);
+  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_FOCUS_MINUTES * 60);
   const [isRunning, setIsRunning] = useState(false);
 
   const finishedMinutes = useMemo(() => Math.round((modeMinutes * 60 - secondsLeft) / 60), [modeMinutes, secondsLeft]);
@@ -74,7 +87,7 @@ export default function FocusPage({ focusSessions, onLogSession }) {
         >
           <div className="space-y-6" data-testid="focus-timer-wrap">
             <div className="flex flex-wrap gap-3" data-testid="focus-mode-buttons-wrap">
-              {[25, 50].map((minutes) => (
+              {FOCUS_MODE_OPTIONS.map((minutes) => (
                 <Button
                   key={minutes}
                   type="button"
@@ -100,7 +113,7 @@ export default function FocusPage({ focusSessions, onLogSession }) {
                 className="rounded-full border-2 border-[#18181b] bg-[#18181b] text-white hover:scale-105"
                 data-testid="focus-toggle-button"
               >
-                {isRunning ? <Pause size={16} className="mr-2" /> : <Play size={16} className="mr-2" />}
+                {isRunning ? <Pause size={CONTROL_ICON_SIZE} className="mr-2" /> : <Play size={CONTROL_ICON_SIZE} className="mr-2" />}
                 {isRunning ? "Pause" : "Start"}
               </Button>
               <Button
@@ -109,7 +122,7 @@ export default function FocusPage({ focusSessions, onLogSession }) {
                 className="rounded-full border-2 border-[#18181b] bg-white text-[#18181b] hover:bg-[#18181b] hover:text-white"
                 data-testid="focus-reset-button"
               >
-                <RotateCcw size={16} className="mr-2" />
+                <RotateCcw size={CONTROL_ICON_SIZE} className="mr-2" />
                 Reset
               </Button>
               <Button
@@ -118,7 +131,7 @@ export default function FocusPage({ focusSessions, onLogSession }) {
                 className="rounded-full border-2 border-[#18181b] bg-[#bbf7d0] text-[#18181b] hover:bg-[#18181b] hover:text-white"
                 data-testid="focus-save-progress-button"
               >
-                <Save size={16} className="mr-2" />
+                <Save size={CONTROL_ICON_SIZE} className="mr-2" />
                 Log {finishedMinutes || 0} min
               </Button>
             </div>
@@ -133,9 +146,10 @@ export default function FocusPage({ focusSessions, onLogSession }) {
               focusSessions.slice(0, 8).map((session, index) => (
                 <motion.div
                   key={session.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  custom={index}
+                  variants={HISTORY_ITEM_VARIANTS}
+                  initial="hidden"
+                  animate="visible"
                   className="flex items-center justify-between border-b-2 border-[#18181b] pb-3"
                   data-testid={`focus-history-item-${index}`}
                 >

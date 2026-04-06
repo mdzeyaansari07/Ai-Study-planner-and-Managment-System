@@ -11,6 +11,67 @@ import FocusPage from "@/pages/FocusPage";
 import DeadlinesPage from "@/pages/DeadlinesPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 
+const PlannerRoutes = ({
+  generatingPlan,
+  submittingTask,
+  submittingDeadline,
+  tasks,
+  deadlines,
+  reminders,
+  plans,
+  focusSessions,
+  analytics,
+  addTask,
+  toggleTask,
+  deleteTask,
+  addDeadline,
+  toggleDeadline,
+  deleteDeadline,
+  logFocusSession,
+  generatePlan,
+}) => {
+  return (
+    <Routes>
+      <Route
+        path="/dashboard"
+        element={<DashboardPage tasks={tasks} deadlines={deadlines} analytics={analytics} plans={plans} />}
+      />
+      <Route
+        path="/planner"
+        element={<PlannerPage generatingPlan={generatingPlan} latestPlan={plans[0]} onGeneratePlan={generatePlan} />}
+      />
+      <Route
+        path="/tasks"
+        element={
+          <TasksPage
+            submittingTask={submittingTask}
+            tasks={tasks}
+            onAddTask={addTask}
+            onToggleTask={toggleTask}
+            onDeleteTask={deleteTask}
+          />
+        }
+      />
+      <Route path="/focus" element={<FocusPage focusSessions={focusSessions} onLogSession={logFocusSession} />} />
+      <Route
+        path="/deadlines"
+        element={
+          <DeadlinesPage
+            submittingDeadline={submittingDeadline}
+            deadlines={deadlines}
+            reminders={reminders}
+            onAddDeadline={addDeadline}
+            onToggleDeadline={toggleDeadline}
+            onDeleteDeadline={deleteDeadline}
+          />
+        }
+      />
+      <Route path="/analytics" element={<AnalyticsPage analytics={analytics} />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+};
+
 function App() {
   const {
     loading,
@@ -47,54 +108,25 @@ function App() {
                 Loading your study space...
               </div>
             ) : (
-              <Routes>
-                <Route
-                  path="/dashboard"
-                  element={
-                    <DashboardPage
-                      tasks={tasks}
-                      deadlines={deadlines}
-                      analytics={analytics}
-                      plans={plans}
-                    />
-                  }
-                />
-                <Route
-                  path="/planner"
-                  element={<PlannerPage generatingPlan={generatingPlan} latestPlan={plans[0]} onGeneratePlan={generatePlan} />}
-                />
-                <Route
-                  path="/tasks"
-                  element={
-                    <TasksPage
-                      submittingTask={submittingTask}
-                      tasks={tasks}
-                      onAddTask={addTask}
-                      onToggleTask={toggleTask}
-                      onDeleteTask={deleteTask}
-                    />
-                  }
-                />
-                <Route
-                  path="/focus"
-                  element={<FocusPage focusSessions={focusSessions} onLogSession={logFocusSession} />}
-                />
-                <Route
-                  path="/deadlines"
-                  element={
-                    <DeadlinesPage
-                      submittingDeadline={submittingDeadline}
-                      deadlines={deadlines}
-                      reminders={reminders}
-                      onAddDeadline={addDeadline}
-                      onToggleDeadline={toggleDeadline}
-                      onDeleteDeadline={deleteDeadline}
-                    />
-                  }
-                />
-                <Route path="/analytics" element={<AnalyticsPage analytics={analytics} />} />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
+              <PlannerRoutes
+                generatingPlan={generatingPlan}
+                submittingTask={submittingTask}
+                submittingDeadline={submittingDeadline}
+                tasks={tasks}
+                deadlines={deadlines}
+                reminders={reminders}
+                plans={plans}
+                focusSessions={focusSessions}
+                analytics={analytics}
+                addTask={addTask}
+                toggleTask={toggleTask}
+                deleteTask={deleteTask}
+                addDeadline={addDeadline}
+                toggleDeadline={toggleDeadline}
+                deleteDeadline={deleteDeadline}
+                logFocusSession={logFocusSession}
+                generatePlan={generatePlan}
+              />
             )}
           </main>
           <Toaster data-testid="toast-root" position="top-right" richColors closeButton />

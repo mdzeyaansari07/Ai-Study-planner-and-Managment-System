@@ -198,46 +198,47 @@ def fallback_schedule(payload: StudyPlanRequest) -> tuple[List[Dict], str]:
     return plan, "Structured fallback plan generated."
 
 
-def parse_plan_response(raw_text: str, payload: StudyPlanRequest) -> tuple[List[Dict], str]:
-    cleaned = strip_json_fence(raw_text)
-    try:
-        loaded = json.loads(cleaned)
-    except json.JSONDecodeError:
-        return fallback_schedule(payload)
-
-    schedule_source = []
-    summary = "AI generated plan created."
-
+def extract_schedule_source_and_summary(loaded: object) -> tuple[List[Dict], str]:
     if isinstance(loaded, dict):
-        if isinstance(loaded.get("summary"), str):
-            summary = loaded["summary"]
-        if isinstance(loaded.get("schedule"), list):
-            schedule_source = loaded["schedule"]
-    elif isinstance(loaded, list):
-        schedule_source = loaded
+        summary = loaded["summary"] if isinstance(loaded.get("summary"), str) else "AI generated plan created."
+        schedule = loaded["schedule"] if isinstance(loaded.get("schedule"), list) else []
+        return schedule, summary
 
+    if isinstance(loaded, list):
+        return loaded, "AI generated plan created."
+
+    return [], "AI generated plan created."
+
+
+def normalize_topics(topics: object) -> List[str]:
+    if isinstance(topics, str):
+        return [topics]
+    if isinstance(topics, list) and topics:
+        return [str(topic) for topic in topics]
+    return ["General topic"]
+
+
+def normalize_schedule_entries(schedule_source: List[Dict], payload: StudyPlanRequest) -> List[Dict]:
     normalized_schedule: List[Dict] = []
+    default_focus_minutes = int(payload.available_hours_per_day * 60)
+
     for idx, item in enumerate(schedule_source[: payload.study_days]):
         if not isinstance(item, dict):
             continue
-        topics = item.get("topics")
-        if isinstance(topics, str):
-            topics = [topics]
-        if not isinstance(topics, list) or not topics:
-            topics = ["General topic"]
 
         normalized_schedule.append(
             {
                 "day": str(item.get("day", f"Day {idx + 1}")),
-                "topics": [str(topic) for topic in topics],
-                "focus_minutes": int(item.get("focus_minutes", int(payload.available_hours_per_day * 60))),
+                "topics": normalize_topics(item.get("topics")),
+                "focus_minutes": int(item.get("focus_minutes", default_focus_minutes)),
                 "notes": str(item.get("notes", "Review and recap for 10 minutes.")),
             }
         )
 
-    if not normalized_schedule:
-        return fallback_schedule(payload)
+    return normalized_schedule
 
+
+def pad_schedule_days(normalized_schedule: List[Dict], payload: StudyPlanRequest) -> List[Dict]:
     while len(normalized_schedule) < payload.study_days:
         next_day = len(normalized_schedule) + 1
         normalized_schedule.append(
@@ -248,8 +249,55 @@ def parse_plan_response(raw_text: str, payload: StudyPlanRequest) -> tuple[List[
                 "notes": "Use this day for weak-topic reinforcement.",
             }
         )
+    return normalized_schedule
 
-    return normalized_schedule, summary
+
+def parse_plan_response(raw_text: str, payload: StudyPlanRequest) -> tuple[List[Dict], str]:
+    cleaned = strip_json_fence(raw_text)
+    try:
+        loaded = json.loads(cleaned)
+    except json.JSONDecodeError:
+        return fallback_schedule(payload)
+
+    schedule_source, summary = extract_schedule_source_and_summary(loaded)
+    normalized_schedule = normalize_schedule_entries(schedule_source, payload)
+
+    if not normalized_schedule:
+        return fallback_schedule(payload)
+
+    return pad_schedule_days(normalized_schedule, payload), summary
+
+
+def count_upcoming_deadlines(deadlines: List[Dict], now: datetime) -> int:
+    return sum(
+        1
+        for deadline in deadlines
+        if (due_date := parse_iso_date(deadline.get("due_date"))) and due_date >= now
+    )
+
+
+def build_subject_breakdown(tasks: List[Dict]) -> List[SubjectStat]:
+    subject_map: Dict[str, Dict[str, int]] = {}
+    for task in tasks:
+        subject = task.get("subject", "General")
+        if subject not in subject_map:
+            subject_map[subject] = {"total": 0, "completed": 0}
+        subject_map[subject]["total"] += 1
+        if task.get("completed"):
+            subject_map[subject]["completed"] += 1
+
+    subject_breakdown = [
+        SubjectStat(subject=subject, total_tasks=stats["total"], completed_tasks=stats["completed"])
+        for subject, stats in subject_map.items()
+    ]
+    subject_breakdown.sort(key=lambda item: item.total_tasks, reverse=True)
+    return subject_breakdown
+
+
+def calculate_productivity_score(tasks_total: int, tasks_completed: int, focus_minutes_total: int) -> int:
+    completion_ratio = tasks_completed / tasks_total if tasks_total else 0
+    focus_component = min(50, focus_minutes_total // 10)
+    return min(100, int(completion_ratio * 50 + focus_component))
 
 
 @api_router.get("/")
@@ -461,30 +509,9 @@ async def get_analytics_summary():
     tasks_completed = len([task for task in tasks if task.get("completed")])
     focus_minutes_total = sum(int(session.get("duration_minutes", 0)) for session in focus_sessions)
 
-    upcoming_deadlines = 0
-    for deadline in deadlines:
-        due_date = parse_iso_date(deadline.get("due_date"))
-        if due_date and due_date >= now:
-            upcoming_deadlines += 1
-
-    subject_map: Dict[str, Dict[str, int]] = {}
-    for task in tasks:
-        subject = task.get("subject", "General")
-        if subject not in subject_map:
-            subject_map[subject] = {"total": 0, "completed": 0}
-        subject_map[subject]["total"] += 1
-        if task.get("completed"):
-            subject_map[subject]["completed"] += 1
-
-    subject_breakdown = [
-        SubjectStat(subject=subject, total_tasks=stats["total"], completed_tasks=stats["completed"])
-        for subject, stats in subject_map.items()
-    ]
-    subject_breakdown.sort(key=lambda item: item.total_tasks, reverse=True)
-
-    completion_ratio = tasks_completed / tasks_total if tasks_total else 0
-    focus_component = min(50, focus_minutes_total // 10)
-    productivity_score = min(100, int(completion_ratio * 50 + focus_component))
+    upcoming_deadlines = count_upcoming_deadlines(deadlines, now)
+    subject_breakdown = build_subject_breakdown(tasks)
+    productivity_score = calculate_productivity_score(tasks_total, tasks_completed, focus_minutes_total)
 
     return AnalyticsSummary(
         tasks_total=tasks_total,

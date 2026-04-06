@@ -4,13 +4,18 @@ import { Check, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BrutalCard } from "@/components/BrutalCard";
+import { DatePickerField } from "@/components/DatePickerField";
 
-const toDateValue = (value) => {
-  const parsed = value ? new Date(value) : null;
-  if (!parsed || Number.isNaN(parsed.getTime())) {
-    return "";
-  }
-  return parsed.toISOString().slice(0, 10);
+const DEFAULT_ESTIMATED_MINUTES = 45;
+const ACTION_ICON_SIZE = 15;
+const TASK_STAGGER_DELAY = 0.05;
+const TASK_ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: 8 },
+  visible: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: index * TASK_STAGGER_DELAY },
+  }),
 };
 
 const toDisplayDate = (value) => {
@@ -26,7 +31,7 @@ export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTa
   const [subject, setSubject] = useState("General");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
-  const [estimatedMinutes, setEstimatedMinutes] = useState(45);
+  const [estimatedMinutes, setEstimatedMinutes] = useState(DEFAULT_ESTIMATED_MINUTES);
 
   const submitTask = async (event) => {
     event.preventDefault();
@@ -42,7 +47,7 @@ export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTa
     setSubject("General");
     setPriority("medium");
     setDueDate("");
-    setEstimatedMinutes(45);
+    setEstimatedMinutes(DEFAULT_ESTIMATED_MINUTES);
   };
 
   return (
@@ -96,17 +101,13 @@ export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTa
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="task-due-date" className="text-sm font-medium" data-testid="task-due-date-label">Due date</label>
-                <Input
-                  id="task-due-date"
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) => setDueDate(event.target.value)}
-                  className="border-2 border-[#18181b] rounded-none"
-                  data-testid="task-due-date-input"
-                />
-              </div>
+              <DatePickerField
+                id="task-due-date"
+                label="Due date"
+                value={dueDate}
+                onChange={setDueDate}
+                testIdPrefix="task-due-date"
+              />
               <div className="space-y-2">
                 <label htmlFor="task-estimate" className="text-sm font-medium" data-testid="task-estimate-label">
                   Estimated minutes
@@ -149,9 +150,10 @@ export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTa
               tasks.map((task, index) => (
                 <motion.div
                   key={task.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  custom={index}
+                  variants={TASK_ITEM_VARIANTS}
+                  initial="hidden"
+                  animate="visible"
                   className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#18181b] pb-3"
                   data-testid={`task-item-${index}`}
                 >
@@ -173,7 +175,7 @@ export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTa
                       className="rounded-full border-2 border-[#18181b] bg-[#bbf7d0] text-[#18181b] hover:bg-[#18181b] hover:text-white"
                       data-testid={`task-item-${index}-toggle-button`}
                     >
-                      <Check size={15} />
+                      <Check size={ACTION_ICON_SIZE} />
                     </Button>
                     <Button
                       type="button"
@@ -181,7 +183,7 @@ export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTa
                       className="rounded-full border-2 border-[#18181b] bg-[#fecaca] text-[#18181b] hover:bg-[#18181b] hover:text-white"
                       data-testid={`task-item-${index}-delete-button`}
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={ACTION_ICON_SIZE} />
                     </Button>
                   </div>
                 </motion.div>

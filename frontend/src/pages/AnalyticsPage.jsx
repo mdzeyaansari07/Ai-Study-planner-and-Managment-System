@@ -8,6 +8,16 @@ const metricCards = [
   { key: "productivity_score", label: "Productivity Score", bg: "bg-[#e9d5ff]", suffix: "%" },
 ];
 
+const ANALYTICS_CARD_STAGGER = 0.05;
+const ANALYTICS_CARD_VARIANTS = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: index * ANALYTICS_CARD_STAGGER },
+  }),
+};
+
 export default function AnalyticsPage({ analytics }) {
   const completionRate = analytics.tasks_total
     ? Math.round((analytics.tasks_completed / analytics.tasks_total) * 100)
@@ -19,9 +29,10 @@ export default function AnalyticsPage({ analytics }) {
         {metricCards.map((metric, index) => (
           <motion.div
             key={metric.key}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            custom={index}
+            variants={ANALYTICS_CARD_VARIANTS}
+            initial="hidden"
+            animate="visible"
           >
             <BrutalCard
               className={metric.bg}

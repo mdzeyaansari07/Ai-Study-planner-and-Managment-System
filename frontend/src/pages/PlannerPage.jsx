@@ -6,11 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { BrutalCard } from "@/components/BrutalCard";
 
+const DEFAULT_AVAILABLE_HOURS = 3;
+const DEFAULT_STUDY_DAYS = 7;
+const PAGE_MOTION_PROPS = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.35 },
+};
+
 export default function PlannerPage({ generatingPlan, latestPlan, onGeneratePlan }) {
   const [goals, setGoals] = useState("");
   const [priorities, setPriorities] = useState("");
-  const [availableHours, setAvailableHours] = useState(3);
-  const [studyDays, setStudyDays] = useState(7);
+  const [availableHours, setAvailableHours] = useState(DEFAULT_AVAILABLE_HOURS);
+  const [studyDays, setStudyDays] = useState(DEFAULT_STUDY_DAYS);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -24,12 +32,7 @@ export default function PlannerPage({ generatingPlan, latestPlan, onGeneratePlan
 
   return (
     <section className="space-y-8" data-testid="planner-page-root">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="grid grid-cols-1 gap-6 xl:grid-cols-2"
-      >
+      <motion.div {...PAGE_MOTION_PROPS} className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <BrutalCard
           className="bg-[#e9d5ff]"
           title="AI Study Timetable Generator"

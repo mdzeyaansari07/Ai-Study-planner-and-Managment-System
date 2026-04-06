@@ -60,103 +60,116 @@ export const useStudyData = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [
+    getAnalyticsSummary,
+    getDeadlines,
+    getFocusSessions,
+    getPlans,
+    getReminders,
+    getTasks,
+    setAnalytics,
+    setDeadlines,
+    setFocusSessions,
+    setLoading,
+    setPlans,
+    setReminders,
+    setTasks,
+  ]);
+
+  const mutateAndRefresh = async ({ action, successMessage, errorMessage, onStart, onDone }) => {
+    try {
+      if (onStart) {
+        onStart();
+      }
+      await action();
+      toast.success(successMessage);
+      await loadAllData();
+    } catch {
+      toast.error(errorMessage);
+    } finally {
+      if (onDone) {
+        onDone();
+      }
+    }
+  };
 
   useEffect(() => {
-    loadAllData();
+    void loadAllData();
   }, [loadAllData]);
 
   const addTask = async (payload) => {
-    try {
-      setSubmittingTask(true);
-      await createTask(payload);
-      toast.success("Task added.");
-      await loadAllData();
-    } catch {
-      toast.error("Could not add task.");
-    } finally {
-      setSubmittingTask(false);
-    }
+    await mutateAndRefresh({
+      action: () => createTask(payload),
+      successMessage: "Task added.",
+      errorMessage: "Could not add task.",
+      onStart: () => setSubmittingTask(true),
+      onDone: () => setSubmittingTask(false),
+    });
   };
 
   const toggleTask = async (task) => {
-    try {
-      await updateTask(task.id, { completed: !task.completed });
-      toast.success(task.completed ? "Task reopened." : "Task completed.");
-      await loadAllData();
-    } catch {
-      toast.error("Could not update task.");
-    }
+    await mutateAndRefresh({
+      action: () => updateTask(task.id, { completed: !task.completed }),
+      successMessage: task.completed ? "Task reopened." : "Task completed.",
+      errorMessage: "Could not update task.",
+    });
   };
 
   const deleteTask = async (taskId) => {
-    try {
-      await removeTask(taskId);
-      toast.success("Task deleted.");
-      await loadAllData();
-    } catch {
-      toast.error("Could not delete task.");
-    }
+    await mutateAndRefresh({
+      action: () => removeTask(taskId),
+      successMessage: "Task deleted.",
+      errorMessage: "Could not delete task.",
+    });
   };
 
   const addDeadline = async (payload) => {
-    try {
-      setSubmittingDeadline(true);
-      await createDeadline(payload);
-      toast.success("Deadline added.");
-      await loadAllData();
-    } catch {
-      toast.error("Could not add deadline.");
-    } finally {
-      setSubmittingDeadline(false);
-    }
+    await mutateAndRefresh({
+      action: () => createDeadline(payload),
+      successMessage: "Deadline added.",
+      errorMessage: "Could not add deadline.",
+      onStart: () => setSubmittingDeadline(true),
+      onDone: () => setSubmittingDeadline(false),
+    });
   };
 
   const toggleDeadline = async (deadline) => {
-    try {
-      await updateDeadline(deadline.id, { completed: !deadline.completed });
-      toast.success(deadline.completed ? "Deadline moved back to active." : "Deadline marked complete.");
-      await loadAllData();
-    } catch {
-      toast.error("Could not update deadline.");
-    }
+    await mutateAndRefresh({
+      action: () => updateDeadline(deadline.id, { completed: !deadline.completed }),
+      successMessage: deadline.completed ? "Deadline moved back to active." : "Deadline marked complete.",
+      errorMessage: "Could not update deadline.",
+    });
   };
 
   const deleteDeadline = async (deadlineId) => {
-    try {
-      await removeDeadline(deadlineId);
-      toast.success("Deadline removed.");
-      await loadAllData();
-    } catch {
-      toast.error("Could not delete deadline.");
-    }
+    await mutateAndRefresh({
+      action: () => removeDeadline(deadlineId),
+      successMessage: "Deadline removed.",
+      errorMessage: "Could not delete deadline.",
+    });
   };
 
   const logFocusSession = async (durationMinutes) => {
-    try {
-      await createFocusSession({
-        duration_minutes: durationMinutes,
-        completed: true,
-        started_at: new Date().toISOString(),
-      });
-      toast.success("Focus session logged.");
-      await loadAllData();
-    } catch {
-      toast.error("Unable to log focus session.");
-    }
+    await mutateAndRefresh({
+      action: () =>
+        createFocusSession({
+          duration_minutes: durationMinutes,
+          completed: true,
+          started_at: new Date().toISOString(),
+        }),
+      successMessage: "Focus session logged.",
+      errorMessage: "Unable to log focus session.",
+    });
   };
 
   const generatePlan = async (payload) => {
-    try {
-      setGeneratingPlan(true);
-      await generateStudyPlan(payload);
-      toast.success("AI schedule generated.");
-      await loadAllData();
-    } catch {
-      toast.error("AI plan generation failed.");
-    } finally {
-      setGeneratingPlan(false);
-    }
+    await mutateAndRefresh({
+      action: () => generateStudyPlan(payload),
+      successMessage: "AI schedule generated.",
+      errorMessage: "AI plan generation failed.",
+      onStart: () => setGeneratingPlan(true),
+      onDone: () => setGeneratingPlan(false),
+    });
   };
 
   return {

@@ -105,7 +105,7 @@ def test_task_crud_and_analytics_reflection(api_client, cleanup_ids):
     cleanup_ids["tasks"].append(created["id"])
 
     assert created["title"] == create_payload["title"]
-    assert created["completed"] is False
+    assert not created["completed"]
     assert created["priority"] == "high"
 
     list_res = api_client.get(f"{API_BASE}/tasks", timeout=30)
@@ -118,7 +118,7 @@ def test_task_crud_and_analytics_reflection(api_client, cleanup_ids):
     update_res = api_client.put(f"{API_BASE}/tasks/{created['id']}", json={"completed": True}, timeout=30)
     assert update_res.status_code == 200
     updated = update_res.json()
-    assert updated["completed"] is True
+    assert updated["completed"]
 
     after_update = _get_analytics(api_client)
     assert after_update["tasks_total"] >= before["tasks_total"] + 1
@@ -128,7 +128,7 @@ def test_task_crud_and_analytics_reflection(api_client, cleanup_ids):
     assert delete_res.status_code == 200
     cleanup_ids["tasks"].remove(created["id"])
     delete_data = delete_res.json()
-    assert delete_data["success"] is True
+    assert delete_data["success"]
 
     list_after_delete = api_client.get(f"{API_BASE}/tasks", timeout=30)
     assert list_after_delete.status_code == 200
@@ -156,7 +156,7 @@ def test_deadline_crud_and_reminders(api_client, cleanup_ids):
     cleanup_ids["deadlines"].append(created["id"])
 
     assert created["title"] == marker
-    assert created["completed"] is False
+    assert not created["completed"]
 
     reminders_res = api_client.get(f"{API_BASE}/reminders", timeout=30)
     assert reminders_res.status_code == 200
@@ -168,7 +168,7 @@ def test_deadline_crud_and_reminders(api_client, cleanup_ids):
     update_res = api_client.put(f"{API_BASE}/deadlines/{created['id']}", json={"completed": True}, timeout=30)
     assert update_res.status_code == 200
     updated = update_res.json()
-    assert updated["completed"] is True
+    assert updated["completed"]
 
     reminders_after = api_client.get(f"{API_BASE}/reminders", timeout=30)
     assert reminders_after.status_code == 200
@@ -178,7 +178,7 @@ def test_deadline_crud_and_reminders(api_client, cleanup_ids):
     delete_res = api_client.delete(f"{API_BASE}/deadlines/{created['id']}", timeout=30)
     assert delete_res.status_code == 200
     cleanup_ids["deadlines"].remove(created["id"])
-    assert delete_res.json()["success"] is True
+    assert delete_res.json()["success"]
 
 
 def test_focus_session_logging_and_analytics(api_client):
@@ -196,7 +196,7 @@ def test_focus_session_logging_and_analytics(api_client):
     created = create_res.json()
 
     assert created["duration_minutes"] == 7
-    assert created["completed"] is True
+    assert created["completed"]
     assert isinstance(created["id"], str)
 
     sessions_res = api_client.get(f"{API_BASE}/focus-sessions", timeout=30)

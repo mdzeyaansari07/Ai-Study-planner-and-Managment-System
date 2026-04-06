@@ -4,6 +4,12 @@ import { ArrowRight, CheckCircle2, Clock3, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrutalCard } from "@/components/BrutalCard";
 
+const DASHBOARD_MOTION_PROPS = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.35 },
+};
+
 const toReadableDate = (value) => {
   if (!value) {
     return "No date";
@@ -22,12 +28,7 @@ export default function DashboardPage({ tasks, deadlines, analytics, plans }) {
 
   return (
     <section className="space-y-8" data-testid="dashboard-page-root">
-      <motion.div
-        className="grid grid-cols-1 gap-8 lg:grid-cols-3"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-      >
+      <motion.div className="grid grid-cols-1 gap-8 lg:grid-cols-3" {...DASHBOARD_MOTION_PROPS}>
         <div className="brutal-card card-appear overflow-hidden border-2 border-[#18181b] bg-white lg:col-span-2" data-testid="dashboard-hero-card">
           <div className="grid gap-0 md:grid-cols-2">
             <div className="space-y-5 p-7">

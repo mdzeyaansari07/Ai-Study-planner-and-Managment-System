@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { BrutalCard } from "@/components/BrutalCard";
+import { DatePickerField } from "@/components/DatePickerField";
 
 const formatDate = (value) => {
   const parsed = new Date(value);
@@ -19,6 +20,17 @@ const urgencyColor = (daysLeft) => {
     return "bg-[#fed7aa]";
   }
   return "bg-[#bbf7d0]";
+};
+
+const ACTION_ICON_SIZE = 15;
+const DEADLINE_STAGGER_DELAY = 0.05;
+const DEADLINE_ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: 8 },
+  visible: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: index * DEADLINE_STAGGER_DELAY },
+  }),
 };
 
 export default function DeadlinesPage({
@@ -87,31 +99,21 @@ export default function DeadlinesPage({
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="deadline-due-date" className="text-sm font-medium" data-testid="deadline-due-date-label">Due date</label>
-                <Input
-                  id="deadline-due-date"
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) => setDueDate(event.target.value)}
-                  required
-                  className="border-2 border-[#18181b] rounded-none"
-                  data-testid="deadline-due-date-input"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="deadline-reminder-date" className="text-sm font-medium" data-testid="deadline-reminder-date-label">
-                  Reminder date
-                </label>
-                <Input
-                  id="deadline-reminder-date"
-                  type="date"
-                  value={reminderDate}
-                  onChange={(event) => setReminderDate(event.target.value)}
-                  className="border-2 border-[#18181b] rounded-none"
-                  data-testid="deadline-reminder-date-input"
-                />
-              </div>
+              <DatePickerField
+                id="deadline-due-date"
+                label="Due date"
+                value={dueDate}
+                onChange={setDueDate}
+                required
+                testIdPrefix="deadline-due-date"
+              />
+              <DatePickerField
+                id="deadline-reminder-date"
+                label="Reminder date"
+                value={reminderDate}
+                onChange={setReminderDate}
+                testIdPrefix="deadline-reminder-date"
+              />
             </div>
 
             <div className="space-y-2">
@@ -169,9 +171,10 @@ export default function DeadlinesPage({
             deadlines.map((deadline, index) => (
               <motion.div
                 key={deadline.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                custom={index}
+                variants={DEADLINE_ITEM_VARIANTS}
+                initial="hidden"
+                animate="visible"
                 className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#18181b] pb-3"
                 data-testid={`deadline-item-${index}`}
               >
@@ -188,7 +191,7 @@ export default function DeadlinesPage({
                     className="rounded-full border-2 border-[#18181b] bg-[#bbf7d0] text-[#18181b] hover:bg-[#18181b] hover:text-white"
                     data-testid={`deadline-item-${index}-toggle-button`}
                   >
-                    <Check size={15} />
+                    <Check size={ACTION_ICON_SIZE} />
                   </Button>
                   <Button
                     type="button"
@@ -196,7 +199,7 @@ export default function DeadlinesPage({
                     className="rounded-full border-2 border-[#18181b] bg-[#fecaca] text-[#18181b] hover:bg-[#18181b] hover:text-white"
                     data-testid={`deadline-item-${index}-delete-button`}
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={ACTION_ICON_SIZE} />
                   </Button>
                 </div>
               </motion.div>
