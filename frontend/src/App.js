@@ -1,4 +1,5 @@
 import "@/App.css";
+import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
@@ -93,6 +94,26 @@ function App() {
     logFocusSession,
     generatePlan,
   } = useStudyData();
+
+  useEffect(() => {
+    const hideInjectedBadge = () => {
+      const candidates = document.querySelectorAll("a, div, span");
+      candidates.forEach((node) => {
+        if ((node.textContent || "").includes("Made with Emergent")) {
+          node.style.setProperty("display", "none", "important");
+          node.style.setProperty("visibility", "hidden", "important");
+          node.style.setProperty("opacity", "0", "important");
+          node.style.setProperty("pointer-events", "none", "important");
+        }
+      });
+    };
+
+    hideInjectedBadge();
+    const observer = new MutationObserver(() => hideInjectedBadge());
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
