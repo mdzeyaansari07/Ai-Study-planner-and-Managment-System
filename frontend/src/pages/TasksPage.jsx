@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BrutalCard } from "@/components/BrutalCard";
@@ -26,12 +26,38 @@ const toDisplayDate = (value) => {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString();
 };
 
-export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTask, onDeleteTask }) {
+const toDateInput = (value) => {
+  if (!value) {
+    return "";
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+  return parsed.toISOString().slice(0, 10);
+};
+
+export default function TasksPage({
+  submittingTask,
+  tasks,
+  onAddTask,
+  onToggleTask,
+  onDeleteTask,
+  onUpdateTask,
+}) {
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("General");
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
   const [estimatedMinutes, setEstimatedMinutes] = useState(DEFAULT_ESTIMATED_MINUTES);
+  const [editingTaskId, setEditingTaskId] = useState("");
+  const [taskDraft, setTaskDraft] = useState({
+    title: "",
+    subject: "General",
+    priority: "medium",
+    dueDate: "",
+    estimatedMinutes: DEFAULT_ESTIMATED_MINUTES,
+  });
 
   const submitTask = async (event) => {
     event.preventDefault();
@@ -48,6 +74,35 @@ export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTa
     setPriority("medium");
     setDueDate("");
     setEstimatedMinutes(DEFAULT_ESTIMATED_MINUTES);
+  };
+
+  const startTaskEdit = (task) => {
+    setEditingTaskId(task.id);
+    setTaskDraft({
+      title: task.title,
+      subject: task.subject,
+      priority: task.priority,
+      dueDate: toDateInput(task.due_date),
+      estimatedMinutes: task.estimated_minutes,
+    });
+  };
+
+  const cancelTaskEdit = () => {
+    setEditingTaskId("");
+  };
+
+  const saveTaskEdit = async () => {
+    if (!editingTaskId || !taskDraft.title.trim()) {
+      return;
+    }
+    await onUpdateTask(editingTaskId, {
+      title: taskDraft.title,
+      subject: taskDraft.subject,
+      priority: taskDraft.priority,
+      due_date: taskDraft.dueDate ? new Date(taskDraft.dueDate).toISOString() : null,
+      estimated_minutes: Number(taskDraft.estimatedMinutes),
+    });
+    setEditingTaskId("");
   };
 
   return (
@@ -157,35 +212,134 @@ export default function TasksPage({ submittingTask, tasks, onAddTask, onToggleTa
                   className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#18181b] pb-3"
                   data-testid={`task-item-${index}`}
                 >
-                  <div className="space-y-1">
-                    <p
-                      className={`font-medium ${task.completed ? "line-through text-zinc-500" : ""}`}
-                      data-testid={`task-item-${index}-title`}
-                    >
-                      {task.title}
-                    </p>
-                    <p className="text-sm" data-testid={`task-item-${index}-meta`}>
-                      {task.subject} • {task.priority} • {toDisplayDate(task.due_date)} • {task.estimated_minutes} min
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      onClick={() => onToggleTask(task)}
-                      className="rounded-full border-2 border-[#18181b] bg-[#bbf7d0] text-[#18181b] hover:bg-[#18181b] hover:text-white"
-                      data-testid={`task-item-${index}-toggle-button`}
-                    >
-                      <Check size={ACTION_ICON_SIZE} />
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => onDeleteTask(task.id)}
-                      className="rounded-full border-2 border-[#18181b] bg-[#fecaca] text-[#18181b] hover:bg-[#18181b] hover:text-white"
-                      data-testid={`task-item-${index}-delete-button`}
-                    >
-                      <Trash2 size={ACTION_ICON_SIZE} />
-                    </Button>
-                  </div>
+                  {editingTaskId === task.id ? (
+                    <div className="w-full space-y-4" data-testid={`task-item-${index}-edit-wrap`}>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium" data-testid={`task-item-${index}-edit-title-label`}>
+                            Title
+                          </label>
+                          <Input
+                            value={taskDraft.title}
+                            onChange={(event) => setTaskDraft((prev) => ({ ...prev, title: event.target.value }))}
+                            className="border-2 border-[#18181b] rounded-none"
+                            data-testid={`task-item-${index}-edit-title-input`}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium" data-testid={`task-item-${index}-edit-subject-label`}>
+                            Subject
+                          </label>
+                          <Input
+                            value={taskDraft.subject}
+                            onChange={(event) => setTaskDraft((prev) => ({ ...prev, subject: event.target.value }))}
+                            className="border-2 border-[#18181b] rounded-none"
+                            data-testid={`task-item-${index}-edit-subject-input`}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium" data-testid={`task-item-${index}-edit-priority-label`}>
+                            Priority
+                          </label>
+                          <select
+                            value={taskDraft.priority}
+                            onChange={(event) => setTaskDraft((prev) => ({ ...prev, priority: event.target.value }))}
+                            className="h-10 w-full border-2 border-[#18181b] bg-white px-3 text-sm"
+                            data-testid={`task-item-${index}-edit-priority-select`}
+                          >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                          </select>
+                        </div>
+                        <DatePickerField
+                          id={`task-edit-due-date-${index}`}
+                          label="Due date"
+                          value={taskDraft.dueDate}
+                          onChange={(value) => setTaskDraft((prev) => ({ ...prev, dueDate: value }))}
+                          testIdPrefix={`task-item-${index}-edit-due-date`}
+                        />
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium" data-testid={`task-item-${index}-edit-estimate-label`}>
+                            Estimated minutes
+                          </label>
+                          <Input
+                            type="number"
+                            min="5"
+                            max="240"
+                            value={taskDraft.estimatedMinutes}
+                            onChange={(event) =>
+                              setTaskDraft((prev) => ({ ...prev, estimatedMinutes: event.target.value }))
+                            }
+                            className="border-2 border-[#18181b] rounded-none"
+                            data-testid={`task-item-${index}-edit-estimate-input`}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          onClick={saveTaskEdit}
+                          className="rounded-full border-2 border-[#18181b] bg-[#18181b] text-white hover:scale-105"
+                          data-testid={`task-item-${index}-edit-save-button`}
+                        >
+                          <Save size={ACTION_ICON_SIZE} className="mr-1" />
+                          Save
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={cancelTaskEdit}
+                          className="rounded-full border-2 border-[#18181b] bg-white text-[#18181b] hover:bg-[#18181b] hover:text-white"
+                          data-testid={`task-item-${index}-edit-cancel-button`}
+                        >
+                          <X size={ACTION_ICON_SIZE} className="mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-1">
+                        <p
+                          className={`font-medium ${task.completed ? "line-through text-zinc-500" : ""}`}
+                          data-testid={`task-item-${index}-title`}
+                        >
+                          {task.title}
+                        </p>
+                        <p className="text-sm" data-testid={`task-item-${index}-meta`}>
+                          {task.subject} • {task.priority} • {toDisplayDate(task.due_date)} • {task.estimated_minutes} min
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={() => startTaskEdit(task)}
+                          className="rounded-full border-2 border-[#18181b] bg-[#e9d5ff] text-[#18181b] hover:bg-[#18181b] hover:text-white"
+                          data-testid={`task-item-${index}-edit-button`}
+                        >
+                          <Pencil size={ACTION_ICON_SIZE} />
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => onToggleTask(task)}
+                          className="rounded-full border-2 border-[#18181b] bg-[#bbf7d0] text-[#18181b] hover:bg-[#18181b] hover:text-white"
+                          data-testid={`task-item-${index}-toggle-button`}
+                        >
+                          <Check size={ACTION_ICON_SIZE} />
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => onDeleteTask(task.id)}
+                          className="rounded-full border-2 border-[#18181b] bg-[#fecaca] text-[#18181b] hover:bg-[#18181b] hover:text-white"
+                          data-testid={`task-item-${index}-delete-button`}
+                        >
+                          <Trash2 size={ACTION_ICON_SIZE} />
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </motion.div>
               ))
             )}

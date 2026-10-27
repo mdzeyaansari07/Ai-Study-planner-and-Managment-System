@@ -60,21 +60,7 @@ export const useStudyData = () => {
     } finally {
       setLoading(false);
     }
-  }, [
-    getAnalyticsSummary,
-    getDeadlines,
-    getFocusSessions,
-    getPlans,
-    getReminders,
-    getTasks,
-    setAnalytics,
-    setDeadlines,
-    setFocusSessions,
-    setLoading,
-    setPlans,
-    setReminders,
-    setTasks,
-  ]);
+  }, []);
 
   const mutateAndRefresh = async ({ action, successMessage, errorMessage, onStart, onDone }) => {
     try {
@@ -123,6 +109,14 @@ export const useStudyData = () => {
     });
   };
 
+  const updateTaskDetails = async (taskId, payload) => {
+    await mutateAndRefresh({
+      action: () => updateTask(taskId, payload),
+      successMessage: "Task updated.",
+      errorMessage: "Could not update task.",
+    });
+  };
+
   const addDeadline = async (payload) => {
     await mutateAndRefresh({
       action: () => createDeadline(payload),
@@ -146,6 +140,14 @@ export const useStudyData = () => {
       action: () => removeDeadline(deadlineId),
       successMessage: "Deadline removed.",
       errorMessage: "Could not delete deadline.",
+    });
+  };
+
+  const updateDeadlineDetails = async (deadlineId, payload) => {
+    await mutateAndRefresh({
+      action: () => updateDeadline(deadlineId, payload),
+      successMessage: "Deadline updated.",
+      errorMessage: "Could not update deadline.",
     });
   };
 
@@ -186,9 +188,11 @@ export const useStudyData = () => {
     addTask,
     toggleTask,
     deleteTask,
+    updateTaskDetails,
     addDeadline,
     toggleDeadline,
     deleteDeadline,
+    updateDeadlineDetails,
     logFocusSession,
     generatePlan,
   };

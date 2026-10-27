@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Check, Trash2 } from "lucide-react";
+import { Bell, Check, Pencil, Save, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +33,17 @@ const DEADLINE_ITEM_VARIANTS = {
   }),
 };
 
+const toDateInput = (value) => {
+  if (!value) {
+    return "";
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+  return parsed.toISOString().slice(0, 10);
+};
+
 export default function DeadlinesPage({
   submittingDeadline,
   deadlines,
@@ -40,12 +51,21 @@ export default function DeadlinesPage({
   onAddDeadline,
   onToggleDeadline,
   onDeleteDeadline,
+  onUpdateDeadline,
 }) {
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("General");
   const [dueDate, setDueDate] = useState("");
   const [reminderDate, setReminderDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [editingDeadlineId, setEditingDeadlineId] = useState("");
+  const [deadlineDraft, setDeadlineDraft] = useState({
+    title: "",
+    subject: "General",
+    dueDate: "",
+    reminderDate: "",
+    notes: "",
+  });
 
   const submitDeadline = async (event) => {
     event.preventDefault();
@@ -62,6 +82,36 @@ export default function DeadlinesPage({
     setDueDate("");
     setReminderDate("");
     setNotes("");
+  };
+
+  const startDeadlineEdit = (deadline) => {
+    setEditingDeadlineId(deadline.id);
+    setDeadlineDraft({
+      title: deadline.title,
+      subject: deadline.subject,
+      dueDate: toDateInput(deadline.due_date),
+      reminderDate: toDateInput(deadline.reminder_date),
+      notes: deadline.notes || "",
+    });
+  };
+
+  const cancelDeadlineEdit = () => {
+    setEditingDeadlineId("");
+  };
+
+  const saveDeadlineEdit = async () => {
+    if (!editingDeadlineId || !deadlineDraft.title.trim() || !deadlineDraft.dueDate) {
+      return;
+    }
+
+    await onUpdateDeadline(editingDeadlineId, {
+      title: deadlineDraft.title,
+      subject: deadlineDraft.subject,
+      due_date: new Date(deadlineDraft.dueDate).toISOString(),
+      reminder_date: deadlineDraft.reminderDate ? new Date(deadlineDraft.reminderDate).toISOString() : null,
+      notes: deadlineDraft.notes,
+    });
+    setEditingDeadlineId("");
   };
 
   return (
@@ -178,30 +228,117 @@ export default function DeadlinesPage({
                 className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#18181b] pb-3"
                 data-testid={`deadline-item-${index}`}
               >
-                <div>
-                  <p className="font-medium" data-testid={`deadline-item-${index}-title`}>{deadline.title}</p>
-                  <p className="text-sm" data-testid={`deadline-item-${index}-meta`}>
-                    {deadline.subject} • Due {formatDate(deadline.due_date)}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => onToggleDeadline(deadline)}
-                    className="rounded-full border-2 border-[#18181b] bg-[#bbf7d0] text-[#18181b] hover:bg-[#18181b] hover:text-white"
-                    data-testid={`deadline-item-${index}-toggle-button`}
-                  >
-                    <Check size={ACTION_ICON_SIZE} />
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => onDeleteDeadline(deadline.id)}
-                    className="rounded-full border-2 border-[#18181b] bg-[#fecaca] text-[#18181b] hover:bg-[#18181b] hover:text-white"
-                    data-testid={`deadline-item-${index}-delete-button`}
-                  >
-                    <Trash2 size={ACTION_ICON_SIZE} />
-                  </Button>
-                </div>
+                {editingDeadlineId === deadline.id ? (
+                  <div className="w-full space-y-4" data-testid={`deadline-item-${index}-edit-wrap`}>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium" data-testid={`deadline-item-${index}-edit-title-label`}>
+                          Title
+                        </label>
+                        <Input
+                          value={deadlineDraft.title}
+                          onChange={(event) => setDeadlineDraft((prev) => ({ ...prev, title: event.target.value }))}
+                          className="border-2 border-[#18181b] rounded-none"
+                          data-testid={`deadline-item-${index}-edit-title-input`}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium" data-testid={`deadline-item-${index}-edit-subject-label`}>
+                          Subject
+                        </label>
+                        <Input
+                          value={deadlineDraft.subject}
+                          onChange={(event) => setDeadlineDraft((prev) => ({ ...prev, subject: event.target.value }))}
+                          className="border-2 border-[#18181b] rounded-none"
+                          data-testid={`deadline-item-${index}-edit-subject-input`}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <DatePickerField
+                        id={`deadline-edit-due-date-${index}`}
+                        label="Due date"
+                        value={deadlineDraft.dueDate}
+                        onChange={(value) => setDeadlineDraft((prev) => ({ ...prev, dueDate: value }))}
+                        required
+                        testIdPrefix={`deadline-item-${index}-edit-due-date`}
+                      />
+                      <DatePickerField
+                        id={`deadline-edit-reminder-date-${index}`}
+                        label="Reminder date"
+                        value={deadlineDraft.reminderDate}
+                        onChange={(value) => setDeadlineDraft((prev) => ({ ...prev, reminderDate: value }))}
+                        testIdPrefix={`deadline-item-${index}-edit-reminder-date`}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" data-testid={`deadline-item-${index}-edit-notes-label`}>
+                        Notes
+                      </label>
+                      <Textarea
+                        value={deadlineDraft.notes}
+                        onChange={(event) => setDeadlineDraft((prev) => ({ ...prev, notes: event.target.value }))}
+                        className="min-h-20 border-2 border-[#18181b] rounded-none"
+                        data-testid={`deadline-item-${index}-edit-notes-input`}
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        onClick={saveDeadlineEdit}
+                        className="rounded-full border-2 border-[#18181b] bg-[#18181b] text-white hover:scale-105"
+                        data-testid={`deadline-item-${index}-edit-save-button`}
+                      >
+                        <Save size={ACTION_ICON_SIZE} className="mr-1" />
+                        Save
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={cancelDeadlineEdit}
+                        className="rounded-full border-2 border-[#18181b] bg-white text-[#18181b] hover:bg-[#18181b] hover:text-white"
+                        data-testid={`deadline-item-${index}-edit-cancel-button`}
+                      >
+                        <X size={ACTION_ICON_SIZE} className="mr-1" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <p className="font-medium" data-testid={`deadline-item-${index}-title`}>{deadline.title}</p>
+                      <p className="text-sm" data-testid={`deadline-item-${index}-meta`}>
+                        {deadline.subject} • Due {formatDate(deadline.due_date)}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => startDeadlineEdit(deadline)}
+                        className="rounded-full border-2 border-[#18181b] bg-[#e9d5ff] text-[#18181b] hover:bg-[#18181b] hover:text-white"
+                        data-testid={`deadline-item-${index}-edit-button`}
+                      >
+                        <Pencil size={ACTION_ICON_SIZE} />
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => onToggleDeadline(deadline)}
+                        className="rounded-full border-2 border-[#18181b] bg-[#bbf7d0] text-[#18181b] hover:bg-[#18181b] hover:text-white"
+                        data-testid={`deadline-item-${index}-toggle-button`}
+                      >
+                        <Check size={ACTION_ICON_SIZE} />
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => onDeleteDeadline(deadline.id)}
+                        className="rounded-full border-2 border-[#18181b] bg-[#fecaca] text-[#18181b] hover:bg-[#18181b] hover:text-white"
+                        data-testid={`deadline-item-${index}-delete-button`}
+                      >
+                        <Trash2 size={ACTION_ICON_SIZE} />
+                      </Button>
+                    </div>
+                  </>
+                )}
               </motion.div>
             ))
           )}

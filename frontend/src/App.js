@@ -25,9 +25,11 @@ const PlannerRoutes = ({
   addTask,
   toggleTask,
   deleteTask,
+  updateTaskDetails,
   addDeadline,
   toggleDeadline,
   deleteDeadline,
+  updateDeadlineDetails,
   logFocusSession,
   generatePlan,
 }) => {
@@ -50,6 +52,7 @@ const PlannerRoutes = ({
             onAddTask={addTask}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
+            onUpdateTask={updateTaskDetails}
           />
         }
       />
@@ -64,6 +67,7 @@ const PlannerRoutes = ({
             onAddDeadline={addDeadline}
             onToggleDeadline={toggleDeadline}
             onDeleteDeadline={deleteDeadline}
+            onUpdateDeadline={updateDeadlineDetails}
           />
         }
       />
@@ -88,9 +92,11 @@ function App() {
     addTask,
     toggleTask,
     deleteTask,
+    updateTaskDetails,
     addDeadline,
     toggleDeadline,
     deleteDeadline,
+    updateDeadlineDetails,
     logFocusSession,
     generatePlan,
   } = useStudyData();
@@ -142,9 +148,11 @@ function App() {
                 addTask={addTask}
                 toggleTask={toggleTask}
                 deleteTask={deleteTask}
+                updateTaskDetails={updateTaskDetails}
                 addDeadline={addDeadline}
                 toggleDeadline={toggleDeadline}
                 deleteDeadline={deleteDeadline}
+                updateDeadlineDetails={updateDeadlineDetails}
                 logFocusSession={logFocusSession}
                 generatePlan={generatePlan}
               />
